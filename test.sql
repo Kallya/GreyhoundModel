@@ -1,4 +1,4 @@
--- Active: 1669859970324@@127.0.0.1@3306@test
+-- Active: 1670758478894@@127.0.0.1@3306@greyhound_data
 CREATE TABLE track (
     track_id INT AUTO_INCREMENT,
     location VARCHAR(32) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE dog (
     places INT,
     win_rate FLOAT,
     place_rate FLOAT,
-    PRIMARY KEY (dog_id),
+    PRIMARY KEY (dog_id)
 );
 
 -- junction table for dog and race_record
