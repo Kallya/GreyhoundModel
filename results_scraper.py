@@ -1,18 +1,39 @@
 from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+
+base_result_search_url = "https://thegreyhoundrecorder.com.au/results/search/"
+base_url = "https://thegreyhoundrecorder.com.au/"
 
 def get_page_soup(url: str):
     r = Request(url, headers={"User-Agent": "Mozilla/5.0"})
 
     with urlopen(r) as webpage:
         content = webpage.read().decode()
-        soup = BeautifulSoup(content)
+        soup = BeautifulSoup(content, features="html.parser")
 
     return soup
 
+# last_date is a datetime
+def get_result_links(day_num, last_date):
+    dates = [last_date - timedelta(days=i) for i in range(day_num)]
+
+    result_dict = {}
+    for d in dates:
+        d_str = d.strftime("%Y-%m-%d")
+        soup = get_page_soup(base_result_search_url + d_str + '/')
+        try:
+            links = soup.find(class_="results table-striped").find_all('a')
+        except:
+            print(f"no results on {d_str}")
+            continue
+        result_dict[d] = [base_url + l["href"] for l in links]
+    
+    return result_dict
+
 # soup refers to the result page beautifulsoup object
 def get_track_loc(soup):
-    soup.find("h1", class_="pageTitle").text.split()[0]
+    return ' '.join(soup.find(class_="pageTitle").text.split()[:-2])
 
 # race_header refers to header of the table element containing the results
 def get_race_no(race_header):
@@ -32,7 +53,10 @@ def get_fastest_split(race_header):
 
 # race_results refers to table element containing the results
 def get_win_time(race_result_data):
-    return float(race_result_data[0].find_all("td", recursive=False)[4].text)
+    try:
+        return float(race_result_data[0].find_all("td", recursive=False)[4].text)
+    except:
+        return None
 
 def add_race_metadata(result_entry, race_header):
     result_entry["distance"] = get_distance(race_header)
@@ -92,4 +116,5 @@ def get_race_results(result_url):
 
     return all_race_results
 
+    
 
